@@ -9,7 +9,7 @@ requests.packages.urllib3.disable_warnings()
 class WebScannerGUI:
     def __init__(self):
         self.window = tk.Tk()
-        self.window.title("多线程Web安全扫描器 v3.0")
+        self.window.title("多线程Web安全扫描器 v0.3")
         self.window.geometry("750x550")
 
         # 常见目录
