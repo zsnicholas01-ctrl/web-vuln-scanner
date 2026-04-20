@@ -1,17 +1,14 @@
 # scanner.py
 import requests
 from concurrent.futures import ThreadPoolExecutor
+from config import THREAD_NUM, COMMON_DIRS, HEADERS
 
 class CoreScanner:
-    def __init__(self, base_url, thread_num=20):
+    def __init__(self, base_url):
         self.base_url = base_url.rstrip("/")
-        self.thread_num = thread_num
-        self.headers = {"User-Agent": "Mozilla/5.0"}
-        self.common_dirs = [
-            "admin", "login", "manage", "backend", "robots.txt",
-            "index.php", "test", "backup", "sql", "console",
-            "admin.php", "login.php", "phpinfo.php", "install"
-        ]
+        self.thread_num = THREAD_NUM
+        self.headers = HEADERS
+        self.common_dirs = COMMON_DIRS
 
     # 存活检测
     def check_alive(self):

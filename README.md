@@ -8,6 +8,7 @@ Python 编写的轻量级Web漏洞扫描器
 - phpinfo信息泄露漏洞检测
 - robots.txt 敏感信息检测
 - 支持扫描结果自动导出 TXT 报告
+- 采用配置文件分离（config.py），便于维护和扩展
 
 ## 项目架构
 - main.py：GUI主程序
