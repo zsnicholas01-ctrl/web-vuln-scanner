@@ -1,91 +1,100 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 import requests
+from concurrent.futures import ThreadPoolExecutor
+import threading
 
-# 关闭SSL警告
 requests.packages.urllib3.disable_warnings()
 
+class WebScannerGUI:
+    def __init__(self):
+        self.window = tk.Tk()
+        self.window.title("多线程Web安全扫描器 v3.0")
+        self.window.geometry("750x550")
 
-def check_url_alive(target_url):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    }
-    try:
-        response = requests.get(
-            url=target_url,
-            headers=headers,
-            verify=False,
-            timeout=5
-        )
-        if 100 <= response.status_code < 400:
-            return f"[+] 存活 | 状态码: {response.status_code} | {target_url}"
-        else:
-            return f"[-] 异常 | 状态码: {response.status_code} | {target_url}"
-    except Exception as e:
-        return f"[-] 不可达 | 错误: {str(e)} | {target_url}"
+        # 常见目录
+        self.common_dirs = [
+            "admin", "login", "manage", "backend", "robots.txt",
+            "index.php", "test", "backup", "sql", "console",
+            "admin.php", "login.php", "phpinfo.php", "1.php", "install"
+        ]
 
+        self.thread_num = 20  # 线程数（安全工具常用值）
+        self._build_ui()
 
-def dir_scan(base_url):
-    result = []
-    result.append(f"\n===== 开始扫描【{base_url}】目录 =====")
+    def _build_ui(self):
+        tk.Label(self.window, text="目标URL：", font=("微软雅黑",12)).pack(pady=5)
+        self.entry_url = scrolledtext.ScrolledText(self.window, width=85, height=6)
+        self.entry_url.pack(pady=5)
 
-    # 常见后台目录列表
-    dir_list = [
-        "admin", "login", "robots.txt", "index.php",
-        "backup", "test", "manage", "console", "sql"
-    ]
+        self.btn_scan = ttk.Button(self.window, text="开始多线程扫描", command=self.start_scan_thread)
+        self.btn_scan.pack(pady=5)
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    }
+        self.result_box = scrolledtext.ScrolledText(self.window, width=85, height=20)
+        self.result_box.pack(pady=5)
 
-    for d in dir_list:
-        url = base_url.rstrip("/") + "/" + d.lstrip("/")
+    def log(self, msg):
+        # GUI 输出必须安全调用
+        self.result_box.insert(tk.END, msg + "\n")
+        self.result_box.see(tk.END)
+
+    def check_alive(self, url):
+        headers = {"User-Agent": "Mozilla/5.0"}
         try:
-            res = requests.get(url, headers=headers, verify=False, timeout=3)
-            if res.status_code == 200:
-                result.append(f"[+] 发现可访问目录: {url}")
+            r = requests.get(url, headers=headers, timeout=5, verify=False)
+            if 200 <= r.status_code < 400:
+                return True, f"[+] 存活 状态码:{r.status_code}"
+            else:
+                return False, f"[-] 异常 状态码:{r.status_code}"
+        except Exception as e:
+            return False, f"[-] 不可达 {str(e)}"
+
+    def scan_single_dir(self, base_url, d):
+        url = base_url.rstrip("/") + "/" + d.lstrip("/")
+        headers = {"User-Agent": "Mozilla/5.0"}
+        try:
+            r = requests.get(url, headers=headers, timeout=3, verify=False)
+            if r.status_code == 200:
+                self.log(f"[+] 发现目录: {url}")
         except:
-            continue
-    result.append("===== 目录扫描完成 =====\n")
-    return "\n".join(result)
+            return
 
+    def dir_scan_thread(self, base_url):
+        self.log("\n[*] 开始多线程目录扫描...")
+        with ThreadPoolExecutor(max_workers=self.thread_num) as executor:
+            for d in self.common_dirs:
+                executor.submit(self.scan_single_dir, base_url, d)
+        self.log("\n[√] 目录扫描完成")
 
-def start_check():
-    url_input = entry_url.get("1.0", tk.END).strip()
-    if not url_input:
-        result_box.insert(tk.END, "[!] 请输入URL\n")
-        return
+    def start_scan_thread(self):
+        # 开独立线程，避免GUI卡死
+        t = threading.Thread(target=self.do_scan)
+        t.start()
 
-    result_box.insert(tk.END, "===== 开始检测 =====\n")
+    def do_scan(self):
+        url = self.entry_url.get("1.0", tk.END).strip()
+        if not url:
+            self.log("[!] 请输入URL")
+            return
 
-    # 只取第一行当目标
-    target = url_input.splitlines()[0].strip()
+        self.log("="*50)
+        self.log(f"[*] 目标: {url}")
 
-    # 1. 存活检测
-    alive_res = check_url_alive(target)
-    result_box.insert(tk.END, alive_res + "\n")
+        # 存活检测
+        alive, msg = self.check_alive(url)
+        self.log(msg)
+        if not alive:
+            self.log("[!] 目标不可达")
+            self.log("="*50+"\n")
+            return
 
-    # 2. 目录扫描
-    scan_res = dir_scan(target)
-    result_box.insert(tk.END, scan_res + "\n")
+        # 多线程目录扫描
+        self.dir_scan_thread(url)
+        self.log("="*50+"\n")
 
-    result_box.insert(tk.END, "===== 全部任务完成 =====\n\n")
+    def run(self):
+        self.window.mainloop()
 
-
-# ==================== GUI 界面 ====================
-window = tk.Tk()
-window.title("Web安全检测工具 v1.0")
-window.geometry("750x550")
-
-tk.Label(window, text="请输入目标URL（仅输入一个）：", font=("微软雅黑", 12)).pack(pady=5)
-entry_url = scrolledtext.ScrolledText(window, width=85, height=6)
-entry_url.pack(pady=5)
-
-btn_check = ttk.Button(window, text="开始检测 + 目录扫描", command=start_check)
-btn_check.pack(pady=5)
-
-result_box = scrolledtext.ScrolledText(window, width=85, height=20)
-result_box.pack(pady=5)
-
-window.mainloop()
+if __name__ == "__main__":
+    app = WebScannerGUI()
+    app.run()
