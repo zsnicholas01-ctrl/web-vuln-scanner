@@ -5,6 +5,7 @@ import threading
 import requests
 from scanner import CoreScanner
 from poc import POCScanner
+from utils import save_report
 
 requests.packages.urllib3.disable_warnings()
 
@@ -68,6 +69,10 @@ class WebScannerGUI:
 
         self.log("\n 全部扫描完成！")
         self.log("=" * 60)
+        # 导出报告
+        report_content = self.result_box.get("1.0", tk.END)
+        save_report("scan_report.txt", report_content)
+        self.log("[+] 报告已保存: scan_report.txt")
 
     def start_thread(self):
         t = threading.Thread(target=self.do_scan)
