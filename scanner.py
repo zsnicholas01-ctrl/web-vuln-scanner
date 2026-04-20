@@ -77,6 +77,16 @@ class WebScannerGUI:
         except:
             pass
 
+    def check_robots(self,base_url):
+        target = base_url.rstrip("/") + "/robots.txt"
+        headers = {"User_Agent": "Mozilla/5.0"}
+        try:
+            r = requests.get(target,headers=headers,timeout=3,verify=False)
+            if r.status_code ==  200 and len(r.text) >  10:
+                self.log(f"[中危]发现robots.txt敏感路径：{target}")
+        except Exception:
+            pass
+
     def start_scan_thread(self):
         # 开独立线程，避免GUI卡死
         t = threading.Thread(target=self.do_scan)
@@ -103,6 +113,8 @@ class WebScannerGUI:
         self.dir_scan_thread(url)
         # phpinfo信息泄露
         self.check_phpinfo(url)
+        #robots.txt敏感路径
+        self.check_robots(url)
         self.log("="*50+"\n")
 
     def run(self):

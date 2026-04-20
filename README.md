@@ -6,6 +6,7 @@ Python 编写的轻量级Web漏洞扫描器
 - 批量URL检测
 - 基础目录扫描
 - phpinfo信息泄露漏洞检测
+- robots.txt 敏感信息检测
 
 ## 使用方法
 python scanner.py
