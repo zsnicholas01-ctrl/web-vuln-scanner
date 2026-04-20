@@ -66,6 +66,17 @@ class WebScannerGUI:
                 executor.submit(self.scan_single_dir, base_url, d)
         self.log("\n[√] 目录扫描完成")
 
+    def check_phpinfo(self,base_url):
+        target = base_url.rstrip("/") + "/phpinfo.php"
+        headers =  {"User_Agent":"Mozilla/5.0"}
+        try:
+            r = requests.get(target,headers=headers,timeout=3,verify=False)
+            if "phpinfo" in r.text and "PHP Version" in r.text:
+                self.log(f"[高危]发现phpinfo信息泄露：{target}")
+
+        except:
+            pass
+
     def start_scan_thread(self):
         # 开独立线程，避免GUI卡死
         t = threading.Thread(target=self.do_scan)
@@ -90,6 +101,8 @@ class WebScannerGUI:
 
         # 多线程目录扫描
         self.dir_scan_thread(url)
+        # phpinfo信息泄露
+        self.check_phpinfo(url)
         self.log("="*50+"\n")
 
     def run(self):
