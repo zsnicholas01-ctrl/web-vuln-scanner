@@ -1,4 +1,9 @@
-# scanner.py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+核心扫描模块
+包含：存活检测、多线程目录扫描
+"""
 import requests
 from concurrent.futures import ThreadPoolExecutor
 from config import THREAD_NUM, COMMON_DIRS, HEADERS

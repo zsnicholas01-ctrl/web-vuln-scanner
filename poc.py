@@ -1,4 +1,9 @@
-# poc.py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+POC漏洞检测模块
+实现常见信息泄露与简单漏洞验证
+"""
 import requests
 from config import HEADERS, TIMEOUT_SCAN
 

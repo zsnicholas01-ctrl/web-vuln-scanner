@@ -1,4 +1,9 @@
-# main.py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+主程序入口
+GUI界面展示 + 任务调度 + 模块调用
+"""
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 import threading
