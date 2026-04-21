@@ -72,6 +72,9 @@ class WebScannerGUI:
         res = poc.check_path_traversal()
         if res: self.log(res)
 
+        res = poc.check_sql()
+        if res:self.log(res)
+
         self.log("\n 全部扫描完成！")
         self.log("=" * 60)
         # 导出报告

@@ -11,6 +11,8 @@ COMMON_DIRS = [
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 }
+# 常见SQL报错关键词
+KEYWORDS = ["MySQL", "SQL syntax", "error", "ORA-", "Microsoft SQL Server"]
 
 # 超时配置
 TIMEOUT_ALIVE = 5
