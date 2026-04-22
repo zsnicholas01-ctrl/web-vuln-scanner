@@ -42,7 +42,10 @@ class VulnScannerGUI:
         self.btn_path.place(x=370, y=50)
 
         self.btn_sqli = ttk.Button(root, text="SQL注入检测", command=self.start_sqli)
-        self.btn_sqli.place(x=480, y=50)
+        self.btn_sqli.place(x=460, y=50)
+
+        self.btn_xss = ttk.Button(root, text="XSS检测", command=self.start_xss)
+        self.btn_xss.place(x=550, y=50)
 
         # 日志区域
         self.log_text = scrolledtext.ScrolledText(root, width=98, height=28)
@@ -171,6 +174,22 @@ class VulnScannerGUI:
             self.log(res)
         else:
             self.log("[-] 未发现 SQL 注入漏洞")
+
+    def start_xss(self):
+        threading.Thread(target=self.run_xss).start()
+
+    def run_xss(self):
+        self.clear_log()
+        url = self.check_url()
+        if not url:
+            return
+        self.log(f"[+] 开始检测 XSS 漏洞：{url}")
+        p = POCScanner(url)
+        res = p.check_xss()
+        if res:
+            self.log(res)
+        else:
+            self.log("[-] 未发现 XSS 漏洞")
 
     # 保存报告（修复文件名问题）
     def save(self):

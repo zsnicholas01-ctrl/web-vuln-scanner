@@ -18,7 +18,7 @@ class POCScanner:
             r = requests.get(target, headers=HEADERS, timeout=TIMEOUT_SCAN, verify=False)
             if "phpinfo" in r.text and "PHP Version" in r.text:
                 return f"[高危] phpinfo信息泄露: {target}"
-        except:
+        except Exception as e:
             return None
 
     def check_robots(self):
@@ -27,7 +27,7 @@ class POCScanner:
             r = requests.get(target, headers=HEADERS, timeout=TIMEOUT_SCAN, verify=False)
             if r.status_code == 200 and len(r.text) > 10:
                 return f"[中危] robots.txt泄露: {target}"
-        except:
+        except Exception as e:
             return None
 
     def check_path_traversal(self):
@@ -36,21 +36,29 @@ class POCScanner:
             r = requests.get(target, headers=HEADERS, timeout=TIMEOUT_SCAN, verify=False)
             if "root:x:" in r.text:
                 return f"[高危] 路径遍历漏洞: {target}"
-        except:
+        except Exception as e:
             return None
 
     def check_sql(self):
         target = self.base_url.rstrip("/") + "?id=1'"
         try:
-            r = requests.get(target,headers=HEADERS,timeout=TIMEOUT_SCAN,verify=False)
-            keywords =  KEYWORDS
-            for kw in keywords:
+            r = requests.get(target, headers=HEADERS, timeout=TIMEOUT_SCAN, verify=False)
+            for kw in KEYWORDS:
                 if kw in r.text:
                     return f"[高危]可能存在sql注入：{target}"
-        except:
+        except Exception as e:
             return None
 
-
-
-
+    def check_xss(self):
+        #构造带xss参数的url
+        target = self.base_url.strip("/") + "?test="
+        try:
+            for payload in XSS_PAYLOADS:
+                test_url = target + payload
+                r = requests.get(test_url,headers=HEADERS,timeout=TIMEOUT_SCAN,verify=False)
+                for kw in XSS_KEYWORDS:
+                    if kw in r.text:
+                        return  f"[高危]可能存在sql注入：{target}"
+        except Exception as e:
+            return None
 
